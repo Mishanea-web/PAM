@@ -1,331 +1,242 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        backgroundColor: const Color(0xFF00FFED),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: BMIForm(),
-          ),
+      home: WineSelectionScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.teal[50],
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.teal[700],
         ),
       ),
     );
   }
 }
 
-class BMIForm extends StatefulWidget {
-  @override
-  _BMIFormState createState() => _BMIFormState();
-}
+class Wine {
+  final String name;
+  final String image;
+  final int criticScore;
+  final String bottleSize;
+  final double priceUsd;
+  final String type;
+  final String country;
+  final String city;
 
-class _BMIFormState extends State<BMIForm> {
-  int weight = 60;
-  int age = 25;
-  double height = 170.0;
-  double? bmi;
-
-  String getBmiCategory(double bmi) {
-    if (bmi < 18.5) {
-      return "Underweight";
-    } else if (bmi >= 18.5 && bmi <= 24.9) {
-      return "Normal weight";
-    } else if (bmi >= 25 && bmi <= 29.9) {
-      return "Overweight";
-    } else {
-      return "Obesity";
-    }
-  }
-
-  void calculateBmi() {
-    double heightInMeters = height / 100;
-    setState(() {
-      bmi = weight / pow(heightInMeters, 2);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String bmiCategory = bmi != null ? getBmiCategory(bmi!) : '';
-    String bmiText = bmi != null ? bmi!.toStringAsFixed(1) : '';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8.0),
-        const Text(
-          'Welcome',
-          style: TextStyle(fontSize: 28.0, color: Colors.white),
-        ),
-        const SizedBox(height: 8.0),
-        const Text(
-          'BMI Calculator',
-          style: TextStyle(fontSize: 36.0, color: Colors.white),
-        ),
-        const SizedBox(height: 16.0),
-        GenderSelection(),
-        const SizedBox(height: 40.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ValueBox(
-              title: 'Weight',
-              initialValue: weight,
-              unit: 'kg',
-              heightFactor: 0.7,
-              onChanged: (value) {
-                setState(() {
-                  weight = value;
-                });
-              },
-            ),
-            const SizedBox(width: 20.0),
-            ValueBox(
-              title: 'Age',
-              initialValue: age,
-              heightFactor: 0.7,
-              onChanged: (value) {
-                setState(() {
-                  age = value;
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 20.0),
-        const Text(
-          'Height',
-          style: TextStyle(fontSize: 20.0, color: Colors.white),
-        ),
-        const SizedBox(height: 10.0),
-        TextField(
-          keyboardType: TextInputType.number,
-          onChanged: (value) {
-            setState(() {
-              height = double.tryParse(value) ?? height;
-            });
-          },
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey[800],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
-            ),
-            hintText: 'Enter your height in cm',
-            hintStyle: TextStyle(color: Colors.grey[400]),
-          ),
-          style: const TextStyle(fontSize: 20.0, color: Colors.white),
-        ),
-        const SizedBox(height: 30.0),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              bmiText,
-              style: const TextStyle(
-                fontSize: 48.0,
-                color: Colors.teal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10.0),
-            Text(
-              bmiCategory,
-              style: const TextStyle(
-                fontSize: 28.0,
-                color: Colors.teal,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20.0),
-        ElevatedButton(
-          onPressed: () {
-            calculateBmi();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal,
-            minimumSize: const Size(double.infinity, 60),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(0),
-            ),
-          ),
-          child: const Text(
-            "Calculate",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20.0,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class GenderSelection extends StatefulWidget {
-  @override
-  _GenderSelectionState createState() => _GenderSelectionState();
-}
-
-class _GenderSelectionState extends State<GenderSelection> {
-  String _selectedGender = 'Male';
-
-  void _selectGender(String gender) {
-    setState(() {
-      _selectedGender = gender;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: GenderButton(
-            gender: 'Male',
-            isSelected: _selectedGender == 'Male',
-            onTap: () => _selectGender('Male'),
-          ),
-        ),
-        const SizedBox(width: 20.0),
-        Expanded(
-          child: GenderButton(
-            gender: 'Female',
-            isSelected: _selectedGender == 'Female',
-            onTap: () => _selectGender('Female'),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class GenderButton extends StatelessWidget {
-  final String gender;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const GenderButton({
-    required this.gender,
-    required this.isSelected,
-    required this.onTap,
+  Wine({
+    required this.name,
+    required this.image,
+    required this.criticScore,
+    required this.bottleSize,
+    required this.priceUsd,
+    required this.type,
+    required this.country,
+    required this.city,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20.0),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.teal : Colors.grey[800],
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.teal, width: 2.0),
-        ),
-        child: Center(
-          child: Text(
-            gender,
-            style: TextStyle(
-              fontSize: 20.0,
-              color: isSelected ? Colors.white : Colors.teal,
-            ),
-          ),
-        ),
-      ),
+  factory Wine.fromJson(Map<String, dynamic> json) {
+    return Wine(
+      name: json['name'],
+      image: json['image'],
+      criticScore: json['critic_score'],
+      bottleSize: json['bottle_size'],
+      priceUsd: json['price_usd'].toDouble(),
+      type: json['type'],
+      country: json['from']['country'],
+      city: json['from']['city'],
     );
   }
 }
 
-class ValueBox extends StatefulWidget {
-  final String title;
-  final int initialValue;
-  final String? unit;
-  final double heightFactor;
-  final Function(int) onChanged;
-
-  const ValueBox({
-    required this.title,
-    required this.initialValue,
-    this.unit,
-    this.heightFactor = 1.0,
-    required this.onChanged,
-  });
-
+class WineSelectionScreen extends StatefulWidget {
   @override
-  _ValueBoxState createState() => _ValueBoxState();
+  _WineSelectionScreenState createState() => _WineSelectionScreenState();
 }
 
-class _ValueBoxState extends State<ValueBox> {
-  int _value = 0;
+class _WineSelectionScreenState extends State<WineSelectionScreen> {
+  List<Wine> wines = [];
+  Map<String, bool> favorites = {};
 
   @override
   void initState() {
     super.initState();
-    _value = widget.initialValue;
+    loadWineData();
+    loadFavorites();
   }
 
-  void _increment() {
+  Future<void> loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteKeys = prefs.getKeys();
     setState(() {
-      _value++;
-      widget.onChanged(_value);
+      for (String key in favoriteKeys) {
+        favorites[key] = prefs.getBool(key) ?? false;
+      }
     });
   }
 
-  void _decrement() {
+  Future<void> toggleFavorite(String wineName) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool currentFavorite = favorites[wineName] ?? false;
     setState(() {
-      if (_value > 0) _value--;
-      widget.onChanged(_value);
+      favorites[wineName] = !currentFavorite;
+    });
+    await prefs.setBool(wineName, !currentFavorite);
+  }
+
+  void loadWineData() {
+    String exampleJsonData = '''
+    {
+      "carousel": [
+         {
+          "name": "Chateau Margaux 2015",
+          "image": "https://vintus.com/wp-content/uploads/2018/08/3-BOUT1-hd.jpg",
+          "critic_score": 97,
+          "bottle_size": "750 ml",
+          "price_usd": 750,
+          "type": "red",
+          "from": { "country": "France 🇫🇷", "city": "Bordeaux" }
+        },
+        {
+          "name": "Cloudy Bay Sauvignon Blanc 2020",
+          "image": "https://simplyalcohol.com.sg/wp-content/uploads/2021/07/Cloudy-Bay-2022-Sauvignon-Blanc-Beauty-Shot-1-scaled-1.png",
+          "critic_score": 92,
+          "bottle_size": "750 ml",
+          "price_usd": 30,
+          "type": "white",
+          "from": { "country": "New Zealand 🇳🇿", "city": "Marlborough" }
+        },
+        {
+          "name": "Moet & Chandon Imperial Brut",
+          "image": "https://www.luxuryformen.com/media/catalog/product/cache/7f855d93df6faf4f4bb5212befedd5ec/m/o/moet-and-chandon-brut-imperial.jpg",
+          "critic_score": 89,
+          "bottle_size": "750 ml",
+          "price_usd": 50,
+          "type": "sparkling",
+          "from": { "country": "France 🇫🇷", "city": "Champagne" }
+        },
+        {
+          "name": "Penfolds Grange 2016",
+          "image": "https://eluenheng.luenheng.com/wp-content/uploads/2023/03/PEN-2015-Grange-Beauty-Vintage-Update.jpg",
+          "critic_score": 98,
+          "bottle_size": "750 ml",
+          "price_usd": 850,
+          "type": "red",
+          "from": { "country": "Australia 🇦🇺", "city": "Barossa Valley" }
+        },
+        {
+          "name": "Gavi di Gavi La Scolca 2019",
+          "image": "https://www.osteria.ru/upload/resize_cache/webp/iblock/ff8/muos3yjgd0qthbq3uagcmgxhteyeonjc/DSC04306.webp",
+          "critic_score": 90,
+          "bottle_size": "750 ml",
+          "price_usd": 40,
+          "type": "white",
+          "from": { "country": "Italy 🇮🇹", "city": "Piedmont" }
+        }
+      ]
+    } 
+    ''';
+    final Map<String, dynamic> parsedData = json.decode(exampleJsonData);
+    setState(() {
+      wines = (parsedData['carousel'] as List)
+          .map((data) => Wine.fromJson(data))
+          .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.grey[800],
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              widget.title,
-              style: const TextStyle(fontSize: 20.0, color: Colors.white),
-            ),
-            const SizedBox(height: 10.0),
-            Text(
-              '$_value${widget.unit ?? ''}',
-              style: const TextStyle(fontSize: 36.0, color: Colors.white),
-            ),
-            const SizedBox(height: 10.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: _decrement,
-                  child: const Icon(Icons.remove_circle, color: Colors.teal, size: 48.0),
-                ),
-                const SizedBox(width: 20.0),
-                GestureDetector(
-                  onTap: _increment,
-                  child: const Icon(Icons.add_circle, color: Colors.teal, size: 48.0),
-                ),
-              ],
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Wine Selection'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: ListView.builder(
+          itemCount: wines.length,
+          itemBuilder: (context, index) {
+            final wine = wines[index];
+            final isFavorite = favorites[wine.name] ?? false;
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              color: Colors.lightBlue[50],
+              shadowColor: Colors.blueGrey[200],
+              elevation: 4,
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+                    child: Image.network(
+                      wine.image,
+                      height: 150,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          wine.name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal[700],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '${wine.type} - ${wine.bottleSize} - \$${wine.priceUsd}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.blueGrey),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '${wine.criticScore}/100',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.teal[800]),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            toggleFavorite(wine.name);
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(top: 8.0),
+                            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                            decoration: BoxDecoration(
+                              color: isFavorite ? Colors.blue[800] : Colors.teal[300],
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: Center(
+                              child: Text(
+                                isFavorite ? '★' : '☆',
+                                style: TextStyle(fontSize: 24, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
